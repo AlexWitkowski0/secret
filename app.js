@@ -3,11 +3,20 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 
 var app = express();
+
+const http = require('http');
+const hostname = '127.0.0.1'; // Temporary local host for development, we'll switch to regular ip later.
+const port = 3000;
+
+const server = http.createServer((req, res) => {
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'text/plain');
+    res.end('Test Server, Running Node JS');
+});
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -36,6 +45,11 @@ app.use(function(err, req, res, next) {
   // render the error page
   res.status(err.status || 500);
   res.render('error');
+});
+
+// runs web server
+server.listen(port, hostname, () =>{
+    console.log(`Server running at http://${hostname}:${port}/`);
 });
 
 module.exports = app;
