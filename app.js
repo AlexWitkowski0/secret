@@ -1,64 +1,62 @@
-const createError = require('http-errors');
-const express = require('express');
-const expressLayouts = require('express-ejs-layouts');
-const path = require('path');
-const cookieParser = require('cookie-parser');
-const logger = require('morgan');
-const indexRouter = require('./routes/index');
-const usersRouter = require('./routes/users');
-//
-const app = express();
+var express = require('express');
+var app = express();
+var bodyParser = require('body-parser');
+var mongoose = require('mongoose');
+var session = require('express-session');
+var MongoStore = require('connect-mongo')(session);
 
-const http = require('http');
-const hostname = '127.0.0.1'; // Temporary local host for development, we'll switch to regular ip later.
-const port = 3000;
+//connect to MongoDB
+mongoose.connect('mongodb://localhost/test');
+var db = mongoose.connection;
 
-const server = http.createServer((req, res) => {
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'text/plain');
-    res.end('Test Server, Running Node JS');
+//handle mongo error
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', function () {
+    // we're connected!
 });
 
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'pug');
+//use sessions for tracking logins
+app.use(session({
+    secret: 'work hard',
+    resave: true,
+    saveUninitialized: false,
+    store: new MongoStore({
+        mongooseConnection: db
+    })
+}));
 
-app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+// parse incoming requests
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
-app.use(flash());
+
+// serve static files from template
+app.use(express.static(__dirname + '/templateLogReg'));
+
+// include routes
+var routes = require('./routes/router');
+app.use('/', routes);
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  next(createError(404));
+app.use(function (req, res, next) {
+    var err = new Error('File Not Found');
+    err.status = 404;
+    next(err);
 });
 
 // error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
+// define as the last app.use callback
+app.use(function (err, req, res, next) {
+    res.status(err.status || 500);
+    res.send(err.message);
 });
 
-app.use(function(req, res, next) {
-    res.locals.success_msg = req.flash('success_msg');
-    res.locals.error_msg = req.flash('error_msg');
-    res.locals.error = req.flash('error');
-    next();
+app.get('/',function(req,res){
+    res.sendFile(path.join(__dirname+'/public/register.html'));
 });
 
-// runs web server
-server.listen(port, hostname, () =>{
-    console.log(`Server running at http://${hostname}:${port}/`);
-});
 
-module.exports = app;
+// listen on port 3000
+app.listen(3000, function () {
+    console.log('Express app listening on port 3000');
+});

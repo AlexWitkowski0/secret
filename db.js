@@ -1,4 +1,4 @@
-var r = require('rethinkdbdash')({
+const r = require('rethinkdbdash')({
     port: 28015,
     host: 'localhost',
     db: 'SurviveIO'

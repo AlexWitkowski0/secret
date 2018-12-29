@@ -3,14 +3,28 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "node app",
+    "watch": "nodemon app && mongod"
   },
   "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.18.3",
+    "connect-mongo": "^2.0.3",
     "cookie-parser": "~1.4.3",
     "debug": "~2.6.9",
-    "express": "~4.16.0",
+    "ejs": "^2.6.1",
+    "express": "^4.16.4",
+    "express-ejs-layouts": "^2.5.0",
+    "express-fileupload": "^1.0.0",
+    "express-session": "^1.15.6",
     "http-errors": "~1.6.2",
+    "mongoose": "^5.4.1",
     "morgan": "~1.9.0",
-    "pug": "2.0.0-beta11"
+    "mysql": "^2.16.0",
+    "mysql2": "^1.6.4",
+    "pug": "2.0.0-beta11",
+    "req-flash": "0.0.3",
+    "rethinkdb": "^2.3.3",
+    "rethinkdbdash": "^2.3.31"
   }
 }
