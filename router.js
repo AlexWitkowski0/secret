@@ -1,13 +1,25 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../models/user');
+const User = require('./models/user');
+const path = require('path');
+const app = express();
 
-router.get('/', function (req, res, next) {
-    return res.sendFile(path.join(__dirname + '/public/register.html'));
+app.use(express.static('/public'));
+
+router.get('/', function (req, res) {
+    return res.sendFile(path.join(__dirname + '/public/login.html'));
+});
+router.get('/home', function (req, res) {
+    return res.sendFile(__dirname + '/public/home.html');
+});
+router.get('/register', function (req, res) {
+    return res.sendFile(__dirname + '/public/register.html');
+});
+router.get('/login', function (req, res) {
+    return res.sendFile(__dirname + '/public/login.html');
 });
 
-router.post('/', function (req, res, next) {
-    // confirm that user typed same password twice
+router.post('/register', function (req, res, next) {
     if (req.body.password !== req.body.passwordConf) {
         let err = new Error('Passwords do not match.');
         err.status = 400;
@@ -32,19 +44,22 @@ router.post('/', function (req, res, next) {
                 return next(error);
             } else {
                 req.session.userId = user._id;
-                return res.redirect('/profile');
+                return res.redirect('/home');
             }
         });
+    }
+});
 
-    } else if (req.body.logemail && req.body.logpassword) {
-        User.authenticate(req.body.logemail, req.body.logpassword, function (error, user) {
+router.post('/login', function (req, res, next) {
+    if (req.body.username && req.body.password) {
+        User.authenticate(req.body.username, req.body.password, function (error, user) {
             if (error || !user) {
-                var err = new Error('Wrong email or password.');
+                var err = new Error('Wrong username or password.');
                 err.status = 401;
                 return next(err);
             } else {
                 req.session.userId = user._id;
-                return res.redirect('/profile');
+                return res.redirect('/home');
             }
         });
     } else {
@@ -54,23 +69,6 @@ router.post('/', function (req, res, next) {
     }
 });
 
-router.get('/profile', function (req, res, next) {
-    User.findById(req.session.userId)
-        .exec(function (error, user) {
-            if (error) {
-                return next(error);
-            } else {
-                if (user === null) {
-                    var err = new Error('Not authorized! Go back!');
-                    err.status = 400;
-                    return next(err);
-                } else {
-                    return res.send('<h1>Name: </h1>' + user.username + '<h2>Mail: </h2>' + user.email + '<br><a type="button" href="/logout">Logout</a>')
-                }
-            }
-        });
-});
-
 router.get('/logout', function (req, res, next) {
     if (req.session) {
         // delete session object
@@ -78,7 +76,7 @@ router.get('/logout', function (req, res, next) {
             if (err) {
                 return next(err);
             } else {
-                return res.redirect('/');
+                return res.redirect('/login');
             }
         });
     }
